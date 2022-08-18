@@ -1,11 +1,13 @@
 import React from "react";
-import "./tab.scss";
+import "./Tab.scss"
+import "./Tabs.scss"
 
-const Tab = (props) => {
-  const { title, link } = props;
+const Tab = ( {children, onClick} ) => {
   return (
-    <div className="tab">
-      <h3>{title}</h3>
+    <div className="tabs">
+      <div className="tab-connexion" onClick={onClick}>
+        <h3>{children}</h3>
+      </div>
     </div>
   );
 };

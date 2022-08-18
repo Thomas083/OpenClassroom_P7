@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import Button from "./button/Button";
-import Input from "./input/Input";
-import Link from "./link/Link";
-import Tab from "./tab/Tab";
+import Button from "./Button/Button";
+import Input from "./Input/Input";
+import Link from "./Link/Link";
+import Tab from "./Tabs/Tab";
 import "./identification-form.scss";
 
 const IdentificationForm = () => {
