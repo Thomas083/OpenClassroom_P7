@@ -1,24 +1,36 @@
 @font-face {
-    font-family: 'Ubuntu';
-    src: url('../fonts/Ubuntu-Regular.ttf');
-  }
-  
-  $primary-color: #F57251;
-  $secondary-color: #4F6D7A;
-  $tertiary-color: #A13D63;
-  $white: #F5F5F5;
-  $grey: #eeeeee;
-  $black: #12100E;
-  
-  @mixin flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  * {
-    font-family: "Ubuntu";
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+  font-family: 'Ubuntu';
+  src: url('../fonts/Ubuntu-Regular.ttf');
+}
+
+$primary-color: #F57251;
+$secondary-color: #38618C;
+$tertiary-color: #A13D63;
+$pure-white: #FFFFFF;
+$white: #F5F5F5;
+$grey: #eeeeee;
+$black: #12100E;
+
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+* {
+  font-family: "Ubuntu";
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  @include flex-center;
+  width: 100%;
+  background: $primary-color;
+}
+
+main {
+  @include flex-center;
+}
+

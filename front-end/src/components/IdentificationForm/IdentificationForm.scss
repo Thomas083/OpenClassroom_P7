@@ -1,9 +1,11 @@
-.identification-form {
-    width: 400px;
-    height: 500px;
-    border: 1px black solid;
-    border-radius: 10px;
-    background: pink;
-    transform: translateY(20%);
-    overflow: hidden;
+@import "../../styles/settings.scss";
+
+.identification-container {
+  width: 400px;
+  height: 500px;
+  border: 1px black solid;
+  border-radius: 10px;
+  transform: translateY(0%); // don't touch
+  overflow: hidden;
+  background: white;
 }

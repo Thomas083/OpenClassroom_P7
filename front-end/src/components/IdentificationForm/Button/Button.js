@@ -1,11 +1,13 @@
-import React from 'react';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import "./Button.scss";
 
-const Button = () => {
-    return (
-        <div>
-            
-        </div>
-    );
+const Button = ({ name }) => {
+  return (
+    <NavLink exact to="/">
+      <button>{name}</button>
+    </NavLink>
+  );
 };
 
 export default Button;
