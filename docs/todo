@@ -1,19 +1,21 @@
 Utiliser redux
 utiliser next
-utiliser la convention de nomage BEM
+utiliser sequelize
+reprendre tous les fichiers pour utiliser la convention de nomage BEM et de l'anglais partout
 
 dans le form d'inscription : 
-Akouter des animations sur les onglets, quand il change, quand on clique sur celui déjà ouvert etc
+Ajouter des animations sur les onglets, quand il change, quand on clique sur celui déjà ouvert etc
 rajotuer les messages d'erreurs
-si possible, enlever la logique du jsx, la mettre ailleurs
 supprimer le node_modules dans le back end sur le repo github
+ranger tous les fichiers les rendre joli
+faire le README
 
+ Demander comment passer prop child to parent
 
-      demander comment faire pour que par défaut quand on arrive sur la page d'accueil, on arrive sur l'url "/" qui correspond à la page du fil d'actualité, mais si on est pas connecté et uniquement dans ce cas, rediriger avec react-router-dom sur la page de connexion
-      Demander pour un scroll infini sur page newsfeed
-      Demander si y a pas meilleure facon que d'importer settings a chaque form
+      importer le module db dans le controllers post.js sans le re déclarer
   
-      Demander comment faire style conditionnel notamment le input container le mettre en width 100% sur le newsfeed mais laisser 80 en page de connexion
-      Demander si y a pas une meilleure facçon de mettre les icones en props
-      Demander comment passer prop child to parent
-      dans whatsup, mieux vaut utiliser un "icon alone" ou bienmettre les icones en props dans input ?
+      pour les dates, demander pourquoi il y a un T et un Z, et demander si c'est ici que je dois utiliser dayjs / moment JS, ou si c'est dans le front
+      
+      pour trier les posts dans l'ordre chronologique, filter en js ou bien depuis une commande sql ?
+
+      Demander si je peux laisser uuid pour les key des composant qui ne viennent pas de ma bdd comme des input customs

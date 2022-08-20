@@ -1,5 +1,6 @@
 const express = require("express");
-const router = express.Router()
+const router = express.Router();
+const postCtrl = require("../controllers/post");
 
 // router.get("/", auth, sauceCtrl.getAllSauces);
 // router.get('/:id', auth, sauceCtrl.getOneSauce);
@@ -9,24 +10,21 @@ const router = express.Router()
 // router.post("/:id/like", auth, sauceCtrl.likeDislikeSauce)
 
 
-router.get("/", (req, res, next) => {
-    res.json({ publications: "toutes les publis" });
-    next();
-  });
 
-  router.delete("/", (req, res, next) => {
-    res.json({ publications: "supprimée" });
-    next();
-  });
+router.get("/", postCtrl.getAllPosts);
 
-  router.put("/", (req, res, next) => {
-    res.json({ publications: "mise à jour" });
-    next();
-  });
 
-  router.post("/", (req, res, next) => {
-    res.json({ publications: "publier un post" });
-    next();
-  });
+router.delete("/", (req, res, next) => {
+  res.json({ publications: "supprimée" });
+  next();
+});
 
-  module.exports = router;
+router.put("/", (req, res, next) => {
+  res.json({ publications: "mise à jour" });
+  next();
+});
+
+router.post("/", postCtrl.createPost);
+
+module.exports = router;
+

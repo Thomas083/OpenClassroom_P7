@@ -22,7 +22,6 @@ db.connect((err) => {
   console.log("MySQL Connected ...");
 })
 
-
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -36,12 +35,13 @@ app.use((req, res, next) => {
   next();
 });
 
-
+app.use(express.json())
 
 const userRoutes = require('./routes/user')
 const postRoutes = require('./routes/post');
 
 app.use('/api/auth', userRoutes);
 app.use('/api/post', postRoutes)
-  
+
+// module.exports = db;
 module.exports = app;
