@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import "./Post.scss";
 
 import axios from "axios";
-import ENDPOINTS from "../../../api/endpoints";
-import { GET } from "../../../api/axios";
 
 import Avatar from "../../UI/Avatar/Avatar";
 import Date from "../../UI/Date/Date";
@@ -16,6 +14,7 @@ import dayjs from "dayjs";
 import ToInteract from "./ToInteract/ToInteract";
 import ToRespond from "./ToRespond/ToRespond";
 import Comments from "./Comments/Comments";
+import Trash from "../../UI/Trash/Trash";
 require("dayjs/locale/fr");
 const relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
@@ -33,7 +32,6 @@ const [mediaURL, setMediaURL] = useState(null)
           `http://localhost:4200/api/post/image/${id}`
         );
         if (response.data.length > 0) {
-          console.log(response);
           setMediaURL(response.data[0].image_url)
         }
       } catch (err) {
@@ -68,6 +66,7 @@ const [mediaURL, setMediaURL] = useState(null)
             />
           </div>
         </div>
+        <Trash />
         <Text message={message} />
         {mediaURL && <Media mediaURL={mediaURL}/>}
         <ToInteract postId={postId} />
