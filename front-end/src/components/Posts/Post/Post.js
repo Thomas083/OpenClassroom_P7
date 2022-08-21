@@ -21,18 +21,16 @@ dayjs.extend(relativeTime);
 // ===
 
 const Post = ({ post }) => {
-
-const [mediaURL, setMediaURL] = useState(null)
+  const [mediaURL, setMediaURL] = useState(null);
 
   const id = post.id;
   useEffect(() => {
     const toFetch = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:4200/api/post/image/${id}`
+        const response = await axios.get(`http://localhost:4200/api/post/image/${id}`
         );
         if (response.data.length > 0) {
-          setMediaURL(response.data[0].image_url)
+          setMediaURL(response.data[0].image_url);
         }
       } catch (err) {
         throw err;
@@ -50,6 +48,41 @@ const [mediaURL, setMediaURL] = useState(null)
     id: postId,
   } = post;
 
+  // Render Trash component if user is Admin or if user is author of the post
+
+  const [trash, setTrash] = useState(false);
+
+  useEffect(() => {
+    const toFetchTrash = async () => {
+      try {
+        const response = await axios.get(`http://localhost:4200/api/post/${id}`);
+        let isAdmin = await axios.get(`http://localhost:4200/api/user/${JSON.parse(localStorage.getItem("user")).user_id}`)
+        isAdmin = isAdmin.data[0].admin;
+        if (response.data[0].user_id ===  JSON.parse(localStorage.getItem("user")).user_id || isAdmin
+        ) {
+          setTrash(true);
+        }
+      } catch (err) {
+        throw err;
+      }
+    };
+    toFetchTrash();
+  }, []);
+
+  const handleClick = () => {
+    const deletePost = async () => {
+      try {
+        const response = await axios.delete(`http://localhost:4200/api/post/${id}`);
+        console.log(response);
+        if (response.status === 200) document.location.reload();
+      } catch (err) {
+        throw err;
+      }
+    };
+    deletePost();
+  };
+
+
   return (
     <>
       <div className="post">
@@ -66,9 +99,9 @@ const [mediaURL, setMediaURL] = useState(null)
             />
           </div>
         </div>
-        <Trash />
+        {trash && <Trash post={post} onClick={handleClick} />}
         <Text message={message} />
-        {mediaURL && <Media mediaURL={mediaURL}/>}
+        {mediaURL && <Media mediaURL={mediaURL} />}
         <ToInteract postId={postId} />
         <Comments postId={postId} />
         <ToRespond postId={postId} />

@@ -1,98 +1,36 @@
 import React, { useState, useEffect } from "react";
-import "./Post.scss";
+import Post from "./Post/Post";
+import "./Posts";
+import "./Posts.scss";
 
-import axios from "axios";
+import ENDPOINTS from "../../api/endpoints";
+import { GET } from "../../api/axios";
 
-import Avatar from "../../UI/Avatar/Avatar";
-import Date from "../../UI/Date/Date";
-import Author from "./Author/Author";
-import Text from "./Text/Text";
-import Media from "./Media/Media";
-
-// Permet d'afficher le temps relatif par rapport à la date actuelle, et en français
-import dayjs from "dayjs";
-import ToInteract from "./ToInteract/ToInteract";
-import ToRespond from "./ToRespond/ToRespond";
-import Comments from "./Comments/Comments";
-import Trash from "../../UI/Trash/Trash";
-require("dayjs/locale/fr");
-const relativeTime = require("dayjs/plugin/relativeTime");
-dayjs.extend(relativeTime);
-// ===
-
-const Post = ({ post }) => {
-  const [mediaURL, setMediaURL] = useState(null);
-
-  const id = post.id;
+const Posts = () => {
+  const [dataApi, setDataApi] = useState([]);
+  const [displayData, setDisplayData] = useState(true)
   useEffect(() => {
     const toFetch = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:4200/api/post/image/${id}`
-        );
-        if (response.data.length > 0) {
-          setMediaURL(response.data[0].image_url);
-        }
-      } catch (err) {
-        throw err;
+      const axiosResponse = await GET(ENDPOINTS.GET_ALL_POSTS);
+      if (axiosResponse.status === 200) {
+        setDataApi(axiosResponse.data);
+        
+      } else {
+        setDisplayData(false)
+        // localStorage.clear()
       }
     };
     toFetch();
-  }, []);
-
-  const {
-    author_firstname,
-    author_lastname,
-    date_creation,
-    message,
-    media,
-    id: postId,
-  } = post;
-
-  // Render Trash component if user is Admin or if user is author of the post
-
-  const [trash, setTrash] = useState(false);
-
-  useEffect(() => {
-    const toFetchTrash = async () => {
-      try {
-        const response = await axios.get(`http://localhost:4200/api/post/${id}`);
-        if (response.data[0].user_id ===  JSON.parse(localStorage.getItem("user")).user_id
-        ) {
-          setTrash(true);
-        }
-      } catch (err) {
-        throw err;
-      }
-    };
-    toFetchTrash();
+    
   }, []);
 
   return (
-    <>
-      <div className="post">
-        <div className="post__author_group">
-          <Avatar className={"post__avatar"} />
-          <div className="post__author_and_date">
-            <Author
-              className="post__author"
-              author={`${author_firstname} ${author_lastname}`}
-            />
-            <Date
-              className="post__date"
-              date={dayjs(date_creation).locale("fr").fromNow()}
-            />
-          </div>
-        </div>
-        {trash && <Trash post={post} />}
-        <Text message={message} />
-        {mediaURL && <Media mediaURL={mediaURL} />}
-        <ToInteract postId={postId} />
-        <Comments postId={postId} />
-        <ToRespond postId={postId} />
-      </div>
-    </>
+    <div className="posts">
+      {displayData ? dataApi.map((post) => {
+        return <Post post={post} key={post.id} />;
+      }) : `Vous devez être connecté pour pouvoir poster un message`}
+    </div>
   );
 };
 
-export default Post;
+export default Posts;
