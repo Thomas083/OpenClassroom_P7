@@ -67,9 +67,6 @@ const EditProfilModal = () => {
        user_image: document.getElementById("profil_image").files[0],
     };
     setUserNewInfos(updatedUserNewInfos);
-    const data = {
-      ...updatedUserNewInfos,
-    };
 
     const post = new FormData()
     post.append("user_firstname", refFirstname.current.value)
@@ -129,7 +126,7 @@ const EditProfilModal = () => {
         <div className="modal__photo"> 
           <img src={`http://localhost:4200/${imgSrc}`} alt="profile_picture" />
           <input type="file" name="profil_image" id="profil_image" />
-          <label for="profil_image">
+          <label htmlFor="profil_image">
         
             <FontAwesomeIcon
               icon={faImage}
