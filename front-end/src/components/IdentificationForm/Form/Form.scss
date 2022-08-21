@@ -19,8 +19,10 @@ form {
   .password.infos {
     text-align: left;
   }
+  .login_error {
+    color: red;
+  }
 }
-
 
 input {
   width: 80% !important;
@@ -36,4 +38,4 @@ input {
   &::placeholder {
     font-size: 1rem;
   }
-} 
+}
