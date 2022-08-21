@@ -14,14 +14,14 @@ import dayjs from "dayjs";
 import ToInteract from "./ToInteract/ToInteract";
 import ToRespond from "./ToRespond/ToRespond";
 import Comments from "./Comments/Comments";
+import Trash from "../../UI/Trash/Trash";
 require("dayjs/locale/fr");
 const relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 // ===
 
 const Post = ({ post }) => {
-
-const [mediaURL, setMediaURL] = useState(null)
+  const [mediaURL, setMediaURL] = useState(null);
 
   const id = post.id;
   useEffect(() => {
@@ -31,7 +31,7 @@ const [mediaURL, setMediaURL] = useState(null)
           `http://localhost:4200/api/post/image/${id}`
         );
         if (response.data.length > 0) {
-          setMediaURL(response.data[0].image_url)
+          setMediaURL(response.data[0].image_url);
         }
       } catch (err) {
         throw err;
@@ -49,6 +49,25 @@ const [mediaURL, setMediaURL] = useState(null)
     id: postId,
   } = post;
 
+  // Render Trash component if user is Admin or if user is author of the post
+
+  const [trash, setTrash] = useState(false);
+
+  useEffect(() => {
+    const toFetchTrash = async () => {
+      try {
+        const response = await axios.get(`http://localhost:4200/api/post/${id}`);
+        if (response.data[0].user_id ===  JSON.parse(localStorage.getItem("user")).user_id
+        ) {
+          setTrash(true);
+        }
+      } catch (err) {
+        throw err;
+      }
+    };
+    toFetchTrash();
+  }, []);
+
   return (
     <>
       <div className="post">
@@ -65,8 +84,9 @@ const [mediaURL, setMediaURL] = useState(null)
             />
           </div>
         </div>
+        {trash && <Trash post={post} />}
         <Text message={message} />
-        {mediaURL && <Media mediaURL={mediaURL}/>}
+        {mediaURL && <Media mediaURL={mediaURL} />}
         <ToInteract postId={postId} />
         <Comments postId={postId} />
         <ToRespond postId={postId} />
