@@ -1,96 +1,104 @@
-import React, { useState } from "react";
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const dbc = require("../config/db");
 
+exports.signup = async (req, res) => {
+  try {
+    const { user_password: password } = req.body;
 
-import "./WhatsUpForm.scss";
+    // ====== Password encryption =========
+    const salt = await bcrypt.genSalt(10);
+    const encryptedPassword = await bcrypt.hash(password, salt);
 
-import ENDPOINTS from "../../api/endpoints";
-import { POST } from "../../api/axios";
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImages, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
-
-import dayjs from "dayjs";
-
-const WhatsUpForm = ({ className, id, name, placeholder }) => {
-  const [inputValue, setInputValue] = useState("");
-
-  const [imageAdded, setImageAdded] = useState(false);
-  const [imageName, setImageName] = useState("");
-
-  const inputHandler = (e) => {
-    setInputValue(e.target.value);
-  };
-
-  const submitHandler = async (e) => {
-    e.preventDefault();
-
-    const post = new FormData();
-    post.append(
-      "author_firstname",
-      JSON.parse(localStorage.getItem("user")).user_firstname
-    );
-    post.append(
-      "author_lastname",
-      JSON.parse(localStorage.getItem("user")).user_lastname
-    );
-    post.append("message", inputValue);
-    post.append("date_creation", dayjs().format());
-    post.append("post_image", document.getElementById("post_image").files[0]);
-    post.append("user_id", JSON.parse(localStorage.getItem("user")).user_id);
-
-    // Requête POST axios
-    const res = await POST(ENDPOINTS.CREATE_POST, post);
-    console.log(res);
-    
-    // this code is just for MVP, it will be upgrade in final version
-    document.location.reload();
- 
-
-  };
-
-
-    const imageAddedToPost = (e) => {
-      setImageName(e.target.value.slice(12));
-      setImageAdded(true);
+    const user = {
+      ...req.body,
+      user_password: encryptedPassword,
     };
-
-
-  return (
-    <form
-      className={className}
-      onSubmit={submitHandler}
-      method="POST"
-      action="/api/post"
-      encType="multipart/form-data"
-    >
-      <input
-        className="testt"
-        type="text"
-        id={id}
-        name={name}
-        placeholder={placeholder}
-        required
-        value={inputValue}
-        onChange={inputHandler}
-      />
-      <div className="icons_container">
-        <input
-          type="file"
-          name="post_image"
-          id="post_image"
-          className="icons_container__add_file"
-          onInput={imageAddedToPost}
-        />
-        <div className="image_name">{imageName}</div>
-        <label htmlFor="post_image">
-          <FontAwesomeIcon icon={faImages} color={imageAdded ? "#f57251" : null} />
-        </label>
-        <button type="submit" className="icons_container__submit">
-          <FontAwesomeIcon icon={faPaperPlane} />
-        </button>
-      </div>
-    </form>
-  );
+    const sql = "INSERT INTO users SET ?";
+    const db = dbc.getDB();
+    db.query(sql, user, (err, result) => {
+      if (!result) {
+        res.status(200).json({ message: "Email déjà enregistré" });
+      } else {
+        res.status(201).json({ message: "User created !" });
+      }
+    });
+  } catch (err) {
+    res.status(200).json({ message: "Failed registration", err });
+  }
 };
 
-export default WhatsUpForm;
+exports.login = (req, res) => {
+  //===== Check if user exists in DB ======
+  const { user_email, user_password: clearPassword } = req.body;
+  const sql = `SELECT user_firstname, user_lastname, user_password, user_id, active FROM users WHERE user_email=?`;
+  const db = dbc.getDB();
+  db.query(sql, [user_email], async (err, results) => {
+    if (err) {
+      return res.status(404).json({ err });
+    }
+
+    // ===== Verify password with hash in DB ======
+    if (results[0] && results[0].active === 1) {
+      try {
+        const { user_password: hashedPassword, user_id } = results[0];
+        const match = await bcrypt.compare(clearPassword, hashedPassword);
+        if (match) {
+          // If match, generate JWT token
+          const maxAge = 1 * (24 * 60 * 60 * 1000);
+          const token = jwt.sign({ user_id }, process.env.JWT_TOKEN, {
+            expiresIn: maxAge,
+          });
+
+          // httpOnly: true,
+          // maxAge,
+          // sameSite: true,
+          // secure: true,
+
+          // remove the password key of the response
+          delete results[0].user_password;
+
+          res.cookie("jwt", token);
+          res.status(200).json({
+            user: results[0],
+            token: jwt.sign({ userId: user_id }, process.env.JWT_TOKEN, {
+              expiresIn: "24h",
+            }),
+          });
+        } 
+      } catch (err) {
+        console.log(err);
+        return res.status(400).json({ err });
+      }
+    } else if (results[0] && results[0].active === 0) {
+      res.status(200).json({
+        error: true,
+        message: "Votre compte a été désactivé",
+      });
+    } else if (!results[0]) {
+      res.status(200).json({
+        error: true,
+        message: "Mauvaise combinaison email / mot de passe"
+      })
+    }
+  });
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie("jwt");
+  res.status(200).json("OUT");
+};
+
+exports.desactivateAccount = (req, res) => {
+  const userId = req.params.id;
+  const sql = `UPDATE users u SET active=0 WHERE u.user_id = ?`;
+  const db = dbc.getDB();
+  db.query(sql, userId, (err, results) => {
+    if (err) {
+      return res.status(404).json({ err });
+    }
+    res.clearCookie("jwt");
+    res.status(200).json("DESACTIVATE");
+  });
+};
