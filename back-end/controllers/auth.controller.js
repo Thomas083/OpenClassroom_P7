@@ -1,87 +1,178 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
 const dbc = require("../config/db");
+const db = dbc.getDB();
 
-exports.signup = async (req, res) => {
-  try {
-    const { user_password: password } = req.body;
+// CRUD post
 
-    // ====== Password encryption =========
-    const salt = await bcrypt.genSalt(10);
-    const encryptedPassword = await bcrypt.hash(password, salt);
-
-    const user = {
-      ...req.body,
-      user_password: encryptedPassword,
-    };
-    const sql = "INSERT INTO users SET ?";
-    const db = dbc.getDB();
-    db.query(sql, user, (err, result) => {
-      console.log(result);
-      if (!result) {
-        res.status(200).json({ message: "Email déjà enregistré" });
-      } else {
-        res.status(201).json({ message: "User created !" });
-      }
-    });
-  } catch (err) {
-    res.status(200).json({ message: "Failed registration", err });
-  }
-};
-
-exports.login = (req, res) => {
-  //===== Check if user exists in DB ======
-  const { user_email, user_password: clearPassword } = req.body;
-  const sql = `SELECT user_firstname, user_lastname, user_password, user_id FROM users WHERE user_email=?`;
-  const db = dbc.getDB();
-  db.query(sql, [user_email], async (err, results) => {
-    console.log(req.body);
-    console.log(results);
+exports.createPost = (req, res, next) => {
+  let { body, file } = req;
+  if (!file) delete req.body.image;
+  body = {
+    ...body,
+    likes: "",
+  };
+  const sqlInsert = "INSERT INTO posts SET ?";
+  db.query(sqlInsert, body, (err, result) => {
     if (err) {
-      return res.status(404).json({ err });
+      res.status(404).json({ err });
+      throw err;
     }
-
-    // ===== Verify password with hash in DB ======
-    const { user_password: hashedPassword, user_id } = results[0];
-    try {
-      const match = await bcrypt.compare(clearPassword, hashedPassword);
-      if (match) {
-        // If match, generate JWT token
-        console.log("match ... user_id : ", user_id);
-
-        const maxAge = 1 * (24 * 60 * 60 * 1000);
-        const token = jwt.sign({ user_id }, process.env.JWT_TOKEN, {
-          expiresIn: maxAge,
-        });
-
-        // httpOnly: true,
-        // maxAge,
-        // sameSite: true,
-        // secure: true,
-
-        // remove the password key of the response
-        delete results[0].user_password
-
-        res.cookie("jwt", token);
-        res.status(200).json({
-          // user: results[0], // need to remove password, i must not send in front
-          user: results[0],
-          token: jwt.sign({ userId: user_id }, process.env.JWT_TOKEN, {
-            expiresIn: "24h",
-          }),
-        });
-      } else {
-        console.log("not match");
-      }
-    } catch (err) {
-      console.log(err);
-      return res.status(400).json({ err });
+    // post_id will be equal to the post inserted, and will be reused to link the image at the correct post in the below query
+    const post_id = result.insertId;
+    if (file) {
+      const sqlInsertImage = `INSERT INTO images (image_url, post_id) VALUES ("${file.filename}", ${post_id})`;
+      db.query(sqlInsertImage, (err, result) => {
+        if (err) {
+          res.status(404).json({ err });
+          throw err;
+        }
+        res.status(200).json({ msg: "added..." });
+      });
     }
   });
 };
 
-exports.logout = (req, res) => {
-  res.clearCookie("jwt");
-  res.redirect("/ereddede");
+exports.getAllPosts = (req, res, next) => {
+  const sql = "SELECT * FROM posts ORDER BY date_creation DESC;";
+  db.query(sql, (err, result) => {
+    if (err) {
+      res.status(404).json({ err });
+      throw err;
+    }
+    // console.log(result);
+    res.status(200).json(result);
+  });
+};
+
+exports.getOneImage = (req, res, next) => {
+  const { id: postId } = req.params;
+  const sqlGetImage = `SELECT * FROM images WHERE images.post_id = ${postId};`;
+  db.query(sqlGetImage, (err, result) => {
+    if (err) {
+      res.status(404).json({ err });
+      throw err;
+    }
+    if (result[0]) {
+      result[0].image_url = req.protocol + '://' + req.get('host') + '/images/posts/' + result[0].image_url
+    }
+    res.status(200).json(result);
+  });
+};
+
+exports.updatePost = (req, res, next) => {
+  // let sql = "SELECT * FROM posts ORDER BY date_creation DESC;";
+  // let db = dbc.getDB();
+  // db.query(sql, (err, result) => {
+  //   if (err) {
+  //     res.status(404).json({ err });
+  //     throw err;
+  //   }
+  //   // console.log(result);
+  //   res.status(200).json(result);
+  // });
+};
+
+exports.deletePost = (req, res, next) => {
+  // const { postId } = req.body;
+  // const sql = `DELETE FROM posts WHERE id = ${postId}`;
+  // db.query(sql, (err, result) => {
+  //   if (err) {
+  //     res.status(404).json({ err });
+  //     throw err;
+  //   }
+  //   // console.log(result);
+  //   res.status(200).json(result);
+  // });
+};
+
+// Like & unlike a post
+
+exports.likeUnlikePost = (req, res) => {
+  const { userId, postId } = req.body;
+
+  const sqlSelect = `SELECT * FROM likes WHERE likes.user_id = ${userId} AND likes.post_id = ${postId}`;
+  db.query(sqlSelect, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(404).json({ err });
+      throw err;
+    }
+
+    if (result.length === 0) {
+      const sqlInsert = `INSERT INTO likes (user_id, post_id) VALUES (${userId}, ${postId})`;
+      db.query(sqlInsert, (err, result) => {
+        if (err) {
+          console.log(err);
+          res.status(404).json({ err });
+          throw err;
+        }
+        res.status(200).json(result);
+      });
+    } else {
+      const sqlDelete = `DELETE FROM likes WHERE likes.user_id = ${userId} AND likes.post_id = ${postId}`;
+      db.query(sqlDelete, (err, result) => {
+        if (err) {
+          console.log(err);
+          res.status(404).json(err);
+          throw err;
+        }
+        res.status(200).json(result);
+      });
+    }
+  });
+};
+
+exports.postLikedByUser = (req, res) => {
+  const { userId, postId } = req.body;
+  const sql = `SELECT post_id, user_id FROM likes WHERE user_id = ${userId} AND post_id = ${postId}`;
+  db.query(sql, (err, result) => {
+    if (err) {
+      res.status(404).json({ err });
+      throw err;
+    }
+    // console.log("result : " , result);
+    res.status(200).json(result);
+  });
+};
+
+exports.countLikes = (req, res) => {
+  const { postId } = req.body;
+  const sqlInsert = `SELECT COUNT(*) AS total FROM likes WHERE likes.post_id = ${postId}`;
+  db.query(sqlInsert, (err, result) => {
+    if (err) {
+      res.status(404).json({ err });
+      throw err;
+    }
+    res.status(200).json(result);
+  });
+};
+
+// CRUD comments
+exports.getAllComments = (req, res) => {
+  // console.log("reqbody", req.body);
+  const { postId } = req.body;
+  const sql = `SELECT * FROM comments WHERE comments.post_id = ${postId}`;
+  db.query(sql, (err, result) => {
+    if (err) {
+      res.status(404).json({ err });
+      throw err;
+    }
+    // console.log(result);
+    res.status(200).json(result);
+  });
+};
+
+exports.createComment = (req, res, next) => {
+  // console.log(req.body);
+  const { message, post_id, author_id, author_firstname, author_lastname } =
+    req.body;
+  const sql = `INSERT INTO comments (id, post_id, author_id, author_firstname, author_lastname, message, created_at, updated_at, likes) VALUES (NULL, ${post_id}, ${author_id}, "${author_firstname}", "${author_lastname}", "${message}", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '0')`;
+  db.query(sql, (err, result) => {
+    if (err) {
+      res.status(404).json({ err });
+      console.log(err);
+      throw err;
+    }
+    // console.log(result);
+    res.status(200).json(result);
+  });
 };
