@@ -7,4 +7,4 @@ const Link = ({content, onClick}) => {
     );
 };
 
-export default Link;
+export default Link; 

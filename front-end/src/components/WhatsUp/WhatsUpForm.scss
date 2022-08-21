@@ -40,8 +40,11 @@
       cursor: pointer;
     }
   }
+  input[type="file"] {
+    display: none;
+  }
 }
 
 .testt {
   width: 100%;
-}
+} 

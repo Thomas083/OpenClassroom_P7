@@ -9,4 +9,4 @@ const Author = ({className, author}) => {
     );
 };
 
-export default Author;
+export default Author; 

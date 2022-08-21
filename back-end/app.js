@@ -1,29 +1,11 @@
 const express = require("express");
 const app = express();
-const mysql = require('mysql')
 const helmet = require("helmet");
-const bodyParser = require('body-parser'); 
+const cookieParser = require("cookie-parser");
 
-app.use(helmet());
-
-// Create connexion
-const db = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : 'ssMRhrc68xVReAJtIxFg',
-  database : "groupomania"
-});
-
-// Connect
-db.connect((err) => {
-  if(err) {
-    throw err;
-  }
-  console.log("MySQL Connected ...");
-})
-
+// Cors (need to create a config file for better lisibility)
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Origin", `${process.env.CLIENT_URL}`);
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
@@ -32,16 +14,21 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, DELETE, PATCH, OPTIONS"
   );
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   next();
 });
 
-app.use(express.json())
+//
+const userRoutes = require("./routes/user.routes");
+const postRoutes = require("./routes/post.routes");
+const authRoutes = require("./routes/auth.routes");
 
-const userRoutes = require('./routes/user')
-const postRoutes = require('./routes/post');
+app.use(helmet());
+app.use(express.json());
+app.use(cookieParser());
 
-app.use('/api/auth', userRoutes);
-app.use('/api/post', postRoutes)
+app.use("/api/auth", authRoutes);
+// app.use("/api/user", userRoutes);
+app.use("/api/post", postRoutes);
 
-// module.exports = db;
 module.exports = app;

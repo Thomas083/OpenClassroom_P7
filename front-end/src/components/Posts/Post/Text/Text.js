@@ -7,4 +7,4 @@ const Text = ({message}) => {
     );
 };
 
-export default Text;
+export default Text; 
