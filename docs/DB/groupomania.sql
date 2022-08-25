@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : lun. 22 août 2022 à 14:18
+-- Généré le : jeu. 25 août 2022 à 06:50
 -- Version du serveur : 5.7.36
 -- Version de PHP : 7.4.26
 
@@ -96,12 +96,12 @@ CREATE TABLE IF NOT EXISTS `posts` (
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `admin` int(11) NOT NULL DEFAULT '0',
   `user_firstname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `user_lastname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `user_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `user_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `active` int(11) NOT NULL DEFAULT '1',
-  `admin` enum('true','false') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'false',
   PRIMARY KEY (`user_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 COMMIT;
